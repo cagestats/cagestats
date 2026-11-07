@@ -16,7 +16,7 @@ The dashboard is a static site (index.html, app.js, config.js, icon.svg) hosted 
 
 ### 2. Sign-in emails (1 min)
 1. In Supabase, go to **Authentication → URL Configuration**.
-2. Set **Site URL** to your dashboard address, `https://imobabics.com/cagestats/`.
+2. Set **Site URL** to your dashboard address, `https://cagestats.online/`.
 3. Add the same address under **Redirect URLs**.
 
 ### 3. Dashboard settings
