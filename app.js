@@ -78,30 +78,102 @@
 
   // ---------------------------------------------------------------- sign in
 
+  /** Signed-out landing: what Cage Stats is on the left, sign-in on the right. */
   function viewSignIn() {
     app.innerHTML = `
-      <div class="panel center-panel">
-        <h2>Sign in</h2>
-        <p class="muted">We'll email you a sign-in link. No password needed.</p>
-        <form id="signin">
-          <input class="field" id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
-          <button class="btn primary" type="submit">Email me a link</button>
-        </form>
-        <p class="msg" id="msg"></p>
+      <div class="landing">
+        <section class="hero-copy">
+          <p class="eyebrow">5-a-side stats from your watch</p>
+          <h1 class="display">Every goal.<br>Every metre.</h1>
+          <p class="lede">Tap goals and assists on your watch during the match. Distance, moving time and heart rate are recorded for you. Your whole season lands here.</p>
+        </section>
+        <section class="panel auth" id="auth"></section>
+        <div class="sample" aria-label="Example match summary">
+            <div class="sample-head"><span class="caps">Example match</span><span class="caps">60 min</span></div>
+            <div class="sample-stats">
+              <div><span class="num" style="color:var(--c-GOAL)">3</span><span class="caps">Goals</span></div>
+              <div><span class="num" style="color:var(--c-ASSIST)">2</span><span class="caps">Assists</span></div>
+              <div><span class="num">4.31<small>km</small></span><span class="caps">Distance</span></div>
+              <div><span class="num">78<small>%</small></span><span class="caps">Moving</span></div>
+            </div>
+        </div>
       </div>`;
+    authEmailStep();
+  }
+
+  function authEmailStep(prefill) {
+    const box = $('#auth');
+    box.innerHTML = `
+      <h2>Sign in</h2>
+      <p class="muted">No password. We email you a link and a code.</p>
+      <form id="signin" class="stack">
+        <label class="caps" for="email">Email</label>
+        <input class="field" id="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required value="${esc(prefill || '')}">
+        <button class="btn primary" type="submit">Continue</button>
+      </form>
+      <p class="msg" id="msg" role="status"></p>
+      <p class="fine">New here? The same step creates your account.</p>`;
+    $('#email').focus();
     $('#signin').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const email = $('#email').value.trim();
       const btn = e.target.querySelector('button');
-      btn.disabled = true;
-      const { error } = await sb.auth.signInWithOtp({
-        email: $('#email').value.trim(),
-        options: { emailRedirectTo: location.origin + location.pathname },
-      });
-      btn.disabled = false;
+      btn.disabled = true; btn.textContent = 'Sending';
+      const { error } = await sendLink(email);
+      btn.disabled = false; btn.textContent = 'Continue';
+      if (error) { const msg = $('#msg'); msg.className = 'msg err'; msg.textContent = error.message; return; }
+      authCodeStep(email);
+    });
+  }
+
+  function sendLink(email) {
+    return sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+  }
+
+  function authCodeStep(email) {
+    const box = $('#auth');
+    box.innerHTML = `
+      <h2>Check your email</h2>
+      <p class="muted">We sent a sign-in link and a code to<br><b class="em">${esc(email)}</b><br>Tap the link, or type the code here.</p>
+      <form id="verify" class="stack">
+        <label class="caps" for="otp">Code</label>
+        <input class="field code-field" id="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="12" placeholder="000000" required>
+        <button class="btn primary" type="submit">Sign in</button>
+      </form>
+      <p class="msg" id="msg" role="status"></p>
+      <div class="row between">
+        <button class="link-btn" id="change" type="button">Use a different email</button>
+        <button class="link-btn" id="resend" type="button" disabled>Resend in 60s</button>
+      </div>`;
+    $('#otp').focus();
+    $('#change').addEventListener('click', () => authEmailStep(email));
+
+    const resend = $('#resend');
+    let left = 60;
+    const tick = setInterval(() => {
+      if (!resend.isConnected) return clearInterval(tick);
+      left -= 1;
+      if (left <= 0) { clearInterval(tick); resend.disabled = false; resend.textContent = 'Resend email'; }
+      else resend.textContent = `Resend in ${left}s`;
+    }, 1000);
+    resend.addEventListener('click', async () => {
+      resend.disabled = true; resend.textContent = 'Sending';
+      const { error } = await sendLink(email);
       const msg = $('#msg');
-      if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
-      msg.className = 'msg ok';
-      msg.textContent = 'Check your inbox and open the link on this device.';
+      if (error) { msg.className = 'msg err'; msg.textContent = error.message; resend.disabled = false; resend.textContent = 'Resend email'; return; }
+      msg.className = 'msg ok'; msg.textContent = 'Sent again. Use the newest email.';
+      authCodeStep(email);
+    });
+
+    $('#verify').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      const msg = $('#msg');
+      btn.disabled = true; btn.textContent = 'Checking';
+      const { error } = await sb.auth.verifyOtp({ email, token: $('#otp').value.replace(/\s+/g, ''), type: 'email' });
+      btn.disabled = false; btn.textContent = 'Sign in';
+      if (error) { msg.className = 'msg err'; msg.textContent = 'That code is wrong or has expired. Check the newest email, or resend.'; return; }
+      // onAuthStateChange takes it from here.
     });
   }
 

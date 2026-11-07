@@ -142,6 +142,31 @@ header { display: flex; align-items: center; justify-content: space-between; gap
 
 .empty { color: var(--muted); max-width: 52ch; }
 .spinner { color: var(--muted); padding: 40px 0; text-align: center; }
+/* signed-out landing */
+.landing { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); grid-template-areas: "copy auth" "sample auth"; gap: 24px 48px; align-items: center; padding-block: 6vh 2vh; }
+.hero-copy { grid-area: copy; } .auth { grid-area: auth; } .sample { grid-area: sample; align-self: start; }
+@media (max-width: 860px) { .landing { grid-template-columns: minmax(0, 1fr); grid-template-areas: "copy" "auth" "sample"; gap: 24px; padding-block: 2vh 0; } }
+.hero-copy { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.eyebrow { font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--volt); }
+.display { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(46px, 7vw, 84px); line-height: .9; letter-spacing: -.005em; margin: 0; text-wrap: balance; }
+.lede { font-size: 17px; color: #c7c7cc; max-width: 46ch; }
+.sample { border: 1px solid var(--surface-hi); border-radius: 22px; padding: 16px 18px; max-width: 460px; display: flex; flex-direction: column; gap: 12px; }
+.sample-head { display: flex; justify-content: space-between; }
+.sample-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.sample-stats > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.sample-stats .num { font-size: 34px; }
+.sample-stats small { font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--muted); margin-left: 2px; }
+@media (max-width: 420px) { .sample-stats .num { font-size: 28px; } }
+.auth { padding: 28px; gap: 14px; }
+.auth h2 { font-size: 28px; }
+.stack { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.stack .btn { margin-top: 4px; padding-block: 14px; font-size: 15px; }
+.em { color: var(--fg); font-weight: 600; overflow-wrap: anywhere; }
+.msg:empty { display: none; }
+.fine { font-size: 13px; color: var(--muted); }
+.row.between { justify-content: space-between; }
+.link-btn[disabled] { opacity: .5; cursor: default; }
+.field:focus { border-color: var(--volt); outline: none; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
