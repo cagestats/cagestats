@@ -85,7 +85,8 @@
         <section class="hero-copy">
           <p class="eyebrow">5-a-side stats from your watch</p>
           <h1 class="display">Every goal.<br>Every metre.</h1>
-          <p class="lede">Tap goals and assists on your watch during the match. Distance, moving time and heart rate are recorded for you. Your whole season lands here.</p>
+          <p class="lede">Who scored the most this season? Nobody remembers... your watch does.</p>
+          <p class="lede sub">One tap logs a goal or an assist. Distance, work rate and heart rate record themselves. At full time, it all lands here.</p>
         </section>
         <section class="panel auth" id="auth"></section>
         <div class="sample" aria-label="Example match summary">
@@ -94,7 +95,7 @@
               <div><span class="num" style="color:var(--c-GOAL)">3</span><span class="caps">Goals</span></div>
               <div><span class="num" style="color:var(--c-ASSIST)">2</span><span class="caps">Assists</span></div>
               <div><span class="num">4.31<small>km</small></span><span class="caps">Distance</span></div>
-              <div><span class="num">78<small>%</small></span><span class="caps">Moving</span></div>
+              <div><span class="num">78<small>%</small></span><span class="caps">Work rate</span></div>
             </div>
         </div>
       </div>`;
@@ -109,10 +110,10 @@
       <form id="signin" class="stack">
         <label class="caps" for="email">Email</label>
         <input class="field" id="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required value="${esc(prefill || '')}">
-        <button class="btn primary" type="submit">Continue</button>
+        <button class="btn primary" type="submit">Email me a link</button>
       </form>
       <p class="msg" id="msg" role="status"></p>
-      <p class="fine">New here? The same step creates your account.</p>`;
+      <p class="fine">New here? Same step. Your account is set up automatically.</p>`;
     $('#email').focus();
     $('#signin').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -120,7 +121,7 @@
       const btn = e.target.querySelector('button');
       btn.disabled = true; btn.textContent = 'Sending';
       const { error } = await sendLink(email);
-      btn.disabled = false; btn.textContent = 'Continue';
+      btn.disabled = false; btn.textContent = 'Email me a link';
       if (error) { const msg = $('#msg'); msg.className = 'msg err'; msg.textContent = error.message; return; }
       authCodeStep(email);
     });
@@ -202,7 +203,7 @@
       btn.disabled = false;
       if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
       msg.className = 'msg ok';
-      msg.textContent = 'Connected. Your matches will appear here.';
+      msg.textContent = 'Connected. Your matches are on their way.';
       setTimeout(() => { location.hash = ''; route(); }, 900);
     });
   }
@@ -224,7 +225,7 @@
       app.innerHTML = `
         <div class="panel center-panel">
           <h2>No matches yet</h2>
-          <p class="muted">Play a match with the watch. It uploads at the final whistle, or the next time the watch is online.</p>
+          <p class="muted">Play one. It lands here at full time, or the next time your watch is online.</p>
         </div>`;
       return;
     }
@@ -255,7 +256,7 @@
           <div><span class="caps">Matches</span><span class="num">${matches.length}</span></div>
           <div><span class="caps">Played</span><span class="num">${(playedMs / 3.6e6).toFixed(1)}<small>h</small></span></div>
           <div><span class="caps">Distance</span><span class="num">${(distM / 1000).toFixed(1)}<small>km</small></span></div>
-          <div><span class="caps">Moving</span><span class="num">${playedMs ? Math.round((movingMs / playedMs) * 100) : 0}<small>%</small></span></div>
+          <div><span class="caps">Work rate</span><span class="num">${playedMs ? Math.round((movingMs / playedMs) * 100) : 0}<small>%</small></span></div>
         </div>
       </section>
 
@@ -287,7 +288,7 @@
           <div class="date">${fmtDate(m.started_at)} <span class="muted">· ${mins(m.duration_ms)} min</span></div>
           <div class="chips">${chips}</div>
         </div>
-        <div class="km"><span class="num">${km(m.distance_m)}</span><div class="caps">km · ${movingPct(m)}% moving</div></div>
+        <div class="km"><span class="num">${km(m.distance_m)}</span><div class="caps">km · ${movingPct(m)}% work rate</div></div>
       </button>`;
   }
 
@@ -345,8 +346,8 @@
         <div class="big-stats">${big}</div>
         <div class="metrics">
           <div><div class="caps">Distance</div><span class="num">${km(m.distance_m)}</span><small>km</small></div>
-          <div><div class="caps">Moving</div><span class="num">${movingPct(m)}</span><small>%</small></div>
-          <div><div class="caps">Moving time</div><span class="num">${mmss(m.moving_ms)}</span></div>
+          <div><div class="caps">Work rate</div><span class="num">${movingPct(m)}</span><small>%</small></div>
+          <div><div class="caps">On the move</div><span class="num">${mmss(m.moving_ms)}</span></div>
           <div><div class="caps">Heart rate</div><span class="num">${m.avg_hr ?? '--'}</span><small>avg${m.max_hr ? ' · ' + m.max_hr + ' max' : ''}</small></div>
         </div>
       </section>
@@ -355,7 +356,7 @@
         <div class="section-head"><h2>Timeline</h2></div>
         <div class="legend">
           <span><i style="background:var(--heart)"></i>Heart rate</span>
-          <span><i style="background:var(--move);border-radius:2px"></i>Moving</span>
+          <span><i style="background:var(--move);border-radius:2px"></i>On the move</span>
           ${(m.tracked || []).map((k) => `<span><i style="background:${color(k)}"></i>${STATS[k]?.one || k}</span>`).join('')}
         </div>
         <div class="chart">${timeline(raw, m)}</div>

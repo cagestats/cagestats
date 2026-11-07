@@ -7,9 +7,9 @@
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="description" content="Your 5-a-side stats: goals, assists, distance and heart rate from your watch.">
+<meta name="description" content="Who scored the most this season? Your watch knows. Goals, assists, distance and work rate for 5-a-side.">
 <meta property="og:title" content="Cage Stats">
-<meta property="og:description" content="Your 5-a-side stats from your watch.">
+<meta property="og:description" content="Who scored the most this season? Your watch knows.">
 <meta property="og:image" content="https://cagestats.online/icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -149,7 +149,8 @@ header { display: flex; align-items: center; justify-content: space-between; gap
 .hero-copy { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 .eyebrow { font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--volt); }
 .display { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(46px, 7vw, 84px); line-height: .9; letter-spacing: -.005em; margin: 0; text-wrap: balance; }
-.lede { font-size: 17px; color: #c7c7cc; max-width: 46ch; }
+.lede { font-size: 20px; font-weight: 500; color: var(--fg); max-width: 40ch; }
+.lede.sub { font-size: 16px; font-weight: 400; color: #c7c7cc; max-width: 46ch; margin-top: -8px; }
 .sample { border: 1px solid var(--surface-hi); border-radius: 22px; padding: 16px 18px; max-width: 460px; display: flex; flex-direction: column; gap: 12px; }
 .sample-head { display: flex; justify-content: space-between; }
 .sample-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
