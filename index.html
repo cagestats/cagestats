@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cage Stats</title>
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Same visual system as the watch: true black, Apple greys, one volt accent, condensed numerals. */
+:root {
+  --bg: #000000;
+  --surface: #1c1c1e;
+  --surface-hi: #2c2c2e;
+  --line: #2c2c2e;
+  --fg: #ffffff;
+  --muted: #8e8e93;
+  --volt: #d7ff3a;
+  --heart: #ff375f;
+  --danger: #ff453a;
+  --move: #2f4a1a;
+  --c-GOAL: #d7ff3a;
+  --c-ASSIST: #40d3ff;
+  --c-SHOT: #ff9f0a;
+  --c-SAVE: #c17bff;
+  --c-TACKLE: #30d158;
+  --display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --body: 'Barlow', system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--fg); margin: 0; }
+body {
+  font-family: var(--body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: max(20px, env(safe-area-inset-top, 0px)) 48px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+#app { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--volt); outline-offset: 2px; }
+
+/* type */
+.num { font-family: var(--display); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: .005em; }
+.caps { font-weight: 600; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; margin: 0; line-height: 1; letter-spacing: .01em; }
+h1 { font-size: 30px; }
+h2 { font-size: 22px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+/* header */
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand img { width: 30px; height: 30px; }
+.link-btn { background: none; border: none; color: var(--muted); font-size: 13px; padding: 8px 4px; }
+.link-btn:hover { color: var(--fg); }
+
+/* buttons + inputs */
+.btn { border: none; border-radius: 999px; padding: 12px 22px; font-weight: 600; font-size: 14px; background: var(--surface); color: var(--fg); transition: transform .08s; }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--volt); color: #000; }
+.btn.danger { background: none; color: var(--danger); border: 1px solid var(--surface-hi); }
+.btn[disabled] { opacity: .45; cursor: default; }
+.field { width: 100%; background: var(--surface); border: 1px solid var(--surface-hi); border-radius: 14px; padding: 13px 16px; font-size: 16px; }
+.field::placeholder { color: var(--muted); }
+.code-field { font-family: var(--display); font-weight: 800; font-size: 30px; letter-spacing: .3em; text-transform: uppercase; text-align: center; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 14px; color: var(--muted); min-height: 1.4em; }
+.msg.err { color: var(--danger); }
+.msg.ok { color: var(--volt); }
+
+/* panels */
+.panel { background: var(--surface); border-radius: 24px; padding: 22px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.center-panel { max-width: 440px; margin: 6vh auto 0; text-align: center; align-items: center; }
+.center-panel .field, .center-panel form { width: 100%; }
+.center-panel form { display: flex; flex-direction: column; gap: 12px; }
+
+/* hero totals */
+.hero { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border-radius: 24px; overflow: hidden; }
+.hero > div { background: var(--surface); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.hero .num { font-size: 40px; }
+.hero small { font-family: var(--display); font-weight: 700; font-size: 18px; color: var(--muted); margin-left: 3px; }
+@media (max-width: 640px) { .hero { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hero .num { font-size: 34px; } }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.stat-card { background: var(--surface); border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; position: relative; overflow: hidden; }
+.stat-card .num { font-size: 44px; }
+.stat-card .per { font-size: 13px; color: var(--muted); }
+.stat-card .per b { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* section heads */
+.section { display: flex; flex-direction: column; gap: 14px; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+
+/* chart */
+.chart { overflow-x: auto; }
+.chart svg { display: block; width: 100%; height: auto; min-width: 460px; }
+.chart.fit svg { min-width: 0; }
+.legend { display: flex; gap: 6px 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+
+/* match list */
+.matches { display: flex; flex-direction: column; gap: 8px; }
+.match { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: center; background: var(--surface); border: none; border-radius: 20px; padding: 14px 18px; text-align: left; width: 100%; transition: background .12s, transform .08s; }
+.match:hover { background: var(--surface-hi); }
+.match:active { transform: scale(.99); }
+.match .date { font-weight: 600; font-size: 15px; }
+.match .sub { font-size: 13px; color: var(--muted); }
+.chips { display: flex; gap: 12px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: baseline; gap: 5px; }
+.chip .num { font-size: 24px; }
+.chip .caps { font-size: 10px; }
+.km { text-align: right; }
+.km .num { font-size: 28px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; align-self: center; }
+
+/* detail */
+.detail-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.big-stats { display: flex; gap: 36px; flex-wrap: wrap; }
+.big-stats .num { font-size: 72px; }
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.metrics .num { font-size: 30px; }
+.metrics small { font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--muted); margin-left: 2px; }
+@media (max-width: 640px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .big-stats .num { font-size: 60px; } }
+
+/* watches */
+.devices { display: flex; flex-direction: column; gap: 8px; }
+.device { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.device:last-child { border-bottom: none; }
+
+.empty { color: var(--muted); max-width: 52ch; }
+.spinner { color: var(--muted); padding: 40px 0; text-align: center; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <img src="icon.svg" alt="">
+      <h1>Cage Stats</h1>
+    </div>
+    <div class="row">
+      <button class="link-btn" id="nav-watches" hidden>Watches</button>
+      <button class="link-btn" id="sign-out" hidden>Sign out</button>
+    </div>
+  </header>
+  <main id="app"><div class="spinner">Loading</div></main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
