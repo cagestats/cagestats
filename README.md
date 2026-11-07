@@ -36,11 +36,11 @@ Put your **Project URL** and **publishable key** in `config.js`. Both are public
    ```
 2. Press **Run** in Android Studio.
 
-## Linking your watch
+## Connecting your watch
 
-1. On the watch's Home screen, tap **Link to web** under the Start button. A code appears, e.g. `K7M 2QX`.
+1. On the watch's Home screen, tap **Set up sync** at the bottom of the home screen. A code appears, e.g. `K7M 2QX`.
 2. Open the dashboard, sign in, and type the code. It's valid for 30 minutes.
-3. The watch shows **LINKED** within a few seconds and uploads every match it has stored.
+3. The watch shows **SYNC ON** within a few seconds and uploads every match it has stored.
 
 ## Good to know
 

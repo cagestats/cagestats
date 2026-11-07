@@ -112,7 +112,7 @@
       <form id="link" class="section">
         <input class="field code-field" id="code" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC 123" required>
         <input class="field" id="label" maxlength="40" placeholder="Name, e.g. Galaxy Watch7" value="Galaxy Watch">
-        <button class="btn primary" type="submit">Link watch</button>
+        <button class="btn primary" type="submit">Connect watch</button>
         <p class="msg" id="msg"></p>
       </form>`;
   }
@@ -130,7 +130,7 @@
       btn.disabled = false;
       if (error) { msg.className = 'msg err'; msg.textContent = error.message; return; }
       msg.className = 'msg ok';
-      msg.textContent = 'Linked. Your matches will appear here.';
+      msg.textContent = 'Connected. Your matches will appear here.';
       setTimeout(() => { location.hash = ''; route(); }, 900);
     });
   }
@@ -138,8 +138,8 @@
   function viewLink(first) {
     app.innerHTML = `
       <div class="panel center-panel">
-        <h2>${first ? 'Link your watch' : 'Link another watch'}</h2>
-        <p class="muted">On the watch, tap <b>Link to web</b> under the Start button. Type the 6-character code it shows.</p>
+        <h2>${first ? 'Connect your watch' : 'Connect another watch'}</h2>
+        <p class="muted">On the watch, tap <b>Set up sync</b> at the bottom of the home screen, then type the 6-character code it shows.</p>
         ${linkForm()}
       </div>`;
     bindLinkForm();
@@ -378,8 +378,8 @@
           <div class="devices">${rows}</div>
         </div>
         <div class="panel">
-          <h2>Link another watch</h2>
-          <p class="muted">On the watch, tap <b>Link to web</b> under the Start button and type the code here.</p>
+          <h2>Connect another watch</h2>
+          <p class="muted">On the watch, tap <b>Set up sync</b> at the bottom of the home screen and type the code here.</p>
           ${linkForm()}
         </div>
       </section>`;
