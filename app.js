@@ -333,6 +333,9 @@
           <div><div class="caps">On the move</div><span class="num">${mmss(m.moving_ms)}</span></div>
           <div><div class="caps">Heart rate</div><span class="num">${m.avg_hr ?? '--'}</span><small>avg${m.max_hr ? ' · ' + m.max_hr + ' max' : ''}</small></div>
         </div>
+        ${raw.batteryStart != null && raw.batteryEnd != null
+          ? `<p class="fine">Watch battery ${raw.batteryStart}% to ${raw.batteryEnd}%${raw.recovered ? ' · saved automatically after the watch shut down' : ''}</p>`
+          : ''}
       </section>
 
       <section class="section panel">
