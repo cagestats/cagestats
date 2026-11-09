@@ -2,12 +2,11 @@
 (function () {
   'use strict';
 
+  // Only goals and assists are tracked. Older matches may still contain shots,
+  // saves or tackles; those are hidden rather than deleted.
   const STATS = {
     GOAL:   { one: 'Goal',   many: 'Goals',   short: 'G' },
     ASSIST: { one: 'Assist', many: 'Assists', short: 'A' },
-    SHOT:   { one: 'Shot',   many: 'Shots',   short: 'Sh' },
-    SAVE:   { one: 'Save',   many: 'Saves',   short: 'Sv' },
-    TACKLE: { one: 'Tackle', many: 'Tackles', short: 'T' },
   };
   const ORDER = Object.keys(STATS);
   const MOVING = 1.0; // m/s, same threshold as the watch
@@ -24,6 +23,7 @@
   const fmtTime = (iso) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   const movingPct = (m) => (m.duration_ms > 0 ? Math.round((m.moving_ms / m.duration_ms) * 100) : 0);
   const count = (m, k) => Number((m.counts || {})[k] || 0);
+  const shown = (m) => (m.tracked || []).filter((k) => STATS[k]);
 
   // ---------------------------------------------------------------- setup
 
@@ -106,7 +106,7 @@
     const box = $('#auth');
     box.innerHTML = `
       <h2>Sign in</h2>
-      <p class="muted">No password. We email you a link and a code.</p>
+      <p class="muted">No password. We email you a link that signs you in.</p>
       <form id="signin" class="stack">
         <label class="caps" for="email">Email</label>
         <input class="field" id="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required value="${esc(prefill || '')}">
@@ -123,7 +123,7 @@
       const { error } = await sendLink(email);
       btn.disabled = false; btn.textContent = 'Email me a link';
       if (error) { const msg = $('#msg'); msg.className = 'msg err'; msg.textContent = error.message; return; }
-      authCodeStep(email);
+      authSentStep(email);
     });
   }
 
@@ -131,22 +131,18 @@
     return sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
   }
 
-  function authCodeStep(email) {
+  /** After sending: no code to type. Tapping the link in the email signs you in. */
+  function authSentStep(email, note) {
     const box = $('#auth');
     box.innerHTML = `
       <h2>Check your email</h2>
-      <p class="muted">We sent a sign-in link and a code to<br><b class="em">${esc(email)}</b><br>Tap the link, or type the code here.</p>
-      <form id="verify" class="stack">
-        <label class="caps" for="otp">Code</label>
-        <input class="field code-field" id="otp" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="12" placeholder="000000" required>
-        <button class="btn primary" type="submit">Sign in</button>
-      </form>
-      <p class="msg" id="msg" role="status"></p>
+      <p class="muted">We sent a sign-in link to<br><b class="em">${esc(email)}</b></p>
+      <p class="muted">Tap the link in that email and you're in. Open it on the device you want to use the dashboard on.</p>
+      <p class="msg${note ? ' ok' : ''}" id="msg" role="status">${esc(note || '')}</p>
       <div class="row between">
         <button class="link-btn" id="change" type="button">Use a different email</button>
         <button class="link-btn" id="resend" type="button" disabled>Resend in 60s</button>
       </div>`;
-    $('#otp').focus();
     $('#change').addEventListener('click', () => authEmailStep(email));
 
     const resend = $('#resend');
@@ -160,21 +156,8 @@
     resend.addEventListener('click', async () => {
       resend.disabled = true; resend.textContent = 'Sending';
       const { error } = await sendLink(email);
-      const msg = $('#msg');
-      if (error) { msg.className = 'msg err'; msg.textContent = error.message; resend.disabled = false; resend.textContent = 'Resend email'; return; }
-      msg.className = 'msg ok'; msg.textContent = 'Sent again. Use the newest email.';
-      authCodeStep(email);
-    });
-
-    $('#verify').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = e.target.querySelector('button');
-      const msg = $('#msg');
-      btn.disabled = true; btn.textContent = 'Checking';
-      const { error } = await sb.auth.verifyOtp({ email, token: $('#otp').value.replace(/\s+/g, ''), type: 'email' });
-      btn.disabled = false; btn.textContent = 'Sign in';
-      if (error) { msg.className = 'msg err'; msg.textContent = 'That code is wrong or has expired. Check the newest email, or resend.'; return; }
-      // onAuthStateChange takes it from here.
+      if (error) { const msg = $('#msg'); msg.className = 'msg err'; msg.textContent = error.message; resend.disabled = false; resend.textContent = 'Resend email'; return; }
+      authSentStep(email, 'Sent again. Use the newest email.');
     });
   }
 
@@ -235,7 +218,7 @@
     const movingMs = matches.reduce((s, m) => s + m.moving_ms, 0);
 
     const statCards = ORDER.map((k) => {
-      const tracked = matches.filter((m) => (m.tracked || []).includes(k));
+      const tracked = matches.filter((m) => shown(m).includes(k));
       if (!tracked.length) return '';
       const total = tracked.reduce((s, m) => s + count(m, k), 0);
       const hours = tracked.reduce((s, m) => s + m.duration_ms, 0) / 3.6e6;
@@ -280,8 +263,8 @@
   }
 
   function matchRow(m) {
-    const chips = (m.tracked || []).map((k) => `
-      <span class="chip"><span class="dot" style="background:${color(k)}"></span><span class="num">${count(m, k)}</span><span class="caps">${STATS[k]?.short || k}</span></span>`).join('');
+    const chips = shown(m).map((k) => `
+      <span class="chip"><span class="dot" style="background:${color(k)}"></span><span class="num">${count(m, k)}</span><span class="caps">${STATS[k].short}</span></span>`).join('');
     return `
       <button class="match" data-match="${esc(m.id)}">
         <div>
@@ -327,8 +310,8 @@
     const { data } = await sb.from('matches').select('raw').eq('id', id).single();
     const raw = data?.raw || {};
 
-    const big = (m.tracked || []).map((k) => `
-      <div><div class="num" style="color:${color(k)}">${count(m, k)}</div><div class="caps">${STATS[k]?.many || k}</div></div>`).join('');
+    const big = shown(m).map((k) => `
+      <div><div class="num" style="color:${color(k)}">${count(m, k)}</div><div class="caps">${STATS[k].many}</div></div>`).join('');
     const paused = mins(m.paused_ms);
 
     app.innerHTML = `
@@ -357,7 +340,7 @@
         <div class="legend">
           <span><i style="background:var(--heart)"></i>Heart rate</span>
           <span><i style="background:var(--move);border-radius:2px"></i>On the move</span>
-          ${(m.tracked || []).map((k) => `<span><i style="background:${color(k)}"></i>${STATS[k]?.one || k}</span>`).join('')}
+          ${shown(m).map((k) => `<span><i style="background:${color(k)}"></i>${STATS[k]?.one || k}</span>`).join('')}
         </div>
         <div class="chart">${timeline(raw, m)}</div>
       </section>
@@ -385,7 +368,7 @@
   /** Heart rate over the match, a band showing when you were moving, and each tap marked. */
   function timeline(raw, m) {
     const samples = (raw.samples || []).filter((s) => Array.isArray(s));
-    const events = raw.events || [];
+    const events = (raw.events || []).filter((e) => STATS[e.type]);
     const endMs = Math.max(m.duration_ms + (m.paused_ms || 0), ...samples.map((s) => s[0]), ...events.map((e) => e.atMs), 60000);
     const W = 760, H = 250, L = 38, R = 10, T = 34, B = 48;
     const hrs = samples.map((s) => s[1]).filter((v) => typeof v === 'number');
